@@ -1,0 +1,90 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.2.4'
+	id 'io.spring.dependency-management' version '1.1.4'
+	id "org.openapi.generator" version "7.0.1"
+}
+
+
+group = 'com.uzu'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	sourceCompatibility = '17'
+}
+
+// for generated source
+sourceSets.main.java.srcDir new File(buildDir,'generated/')
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+	set('springCloudVersion', "2023.0.0")
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator:3.2.4'
+
+	//implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
+	implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j:3.1.0'
+	implementation 'org.springframework.boot:spring-boot-starter-aop:3.2.4'
+
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	//for reactive webclient
+	implementation 'org.springframework.boot:spring-boot-starter-webflux:3.2.4'
+
+	//for spring swagger with open api 3
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0'
+	//for openapi generator
+	implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
+
+	// for @javax.annotation.Generated
+	implementation 'javax.annotation:javax.annotation-api:1.3.2'
+
+	//for javax.annotation.Nullable
+	implementation 'com.google.code.findbugs:jsr305:3.0.2'
+
+
+
+	// Lombok
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+
+
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
+
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+tasks.register('cbsBuild', GradleBuild) {
+	group = "cbs"
+	tasks = ['clean', 'codeGenSampleAPI', 'build']
+}
+
+tasks.register('codeGenSampleAPI', GenerateTask) {
+	group = "cbs"
+	inputSpec = "$rootDir/src/main/resources/swagger/sample-service.json".toString()
+	outputDir = "$buildDir/generated".toString()
+	generatorName = 'java'
+	apiPackage = 'com.sample.api'
+	modelPackage = 'com.sample.model'
+	library = "webclient"
+	generateApiTests = false
+	generateModelTests = false
+	validateSpec = false
+}

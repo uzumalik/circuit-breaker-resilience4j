@@ -1,0 +1,31 @@
+spring:
+  application:
+  name: circuit-breaker-resilience4j
+
+server:
+  port: 8081
+  servlet:
+    context-path: /circuit-breaker
+
+
+resilience4j.circuitbreaker:
+  instances:
+      accounts:
+        registerHealthIndicator: true
+        eventConsumerBufferSize: 10
+        slidingWindowSize: 3
+        slidingWindowType: COUNT_BASED
+        failureRateThreshold: 50
+        waitDurationInOpenState: 50s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+logging:
+  level:
+    io.github.resilience4j: DEBUG
